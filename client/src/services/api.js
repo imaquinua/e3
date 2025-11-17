@@ -1,5 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api');
+// Use relative path for API calls - works in both dev (via Vite proxy) and production
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 class APIClient {
   constructor(baseURL) {
