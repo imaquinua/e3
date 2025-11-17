@@ -5,6 +5,7 @@ export class Tooltip {
   constructor() {
     this.container = null;
     this.activeTooltip = null;
+    this.hideTimeout = null;
   }
 
   init() {
@@ -24,6 +25,11 @@ export class Tooltip {
     document.addEventListener('mouseover', (e) => {
       const target = e.target.closest('[data-tooltip]');
       if (target) {
+        // Cancel any pending hide timeout
+        if (this.hideTimeout) {
+          clearTimeout(this.hideTimeout);
+          this.hideTimeout = null;
+        }
         this.show(target);
       }
     });
@@ -31,7 +37,8 @@ export class Tooltip {
     document.addEventListener('mouseout', (e) => {
       const target = e.target.closest('[data-tooltip]');
       if (target) {
-        this.hide();
+        // Schedule hide after 1 second
+        this.scheduleHide();
       }
     });
 
@@ -78,7 +85,26 @@ export class Tooltip {
     });
   }
 
+  scheduleHide() {
+    // Clear any existing timeout
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+
+    // Schedule hide after 1 second
+    this.hideTimeout = setTimeout(() => {
+      this.hide();
+      this.hideTimeout = null;
+    }, 1000);
+  }
+
   hide() {
+    // Clear any pending timeout
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+    }
+
     const tooltip = this.container.querySelector('.tooltip');
     if (tooltip) {
       tooltip.classList.remove('tooltip-visible');
