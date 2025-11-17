@@ -59,7 +59,7 @@ export class RegisterView {
   async mounted() {
     // Google signup function
     window.signupWithGoogle = () => {
-      window.location.href = 'http://localhost:3000/api/auth/google';
+      window.location.href = '/api/auth/google';
     };
 
     const form = document.getElementById('registerForm');

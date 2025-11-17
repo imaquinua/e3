@@ -102,11 +102,11 @@ export class ResultsView {
       `;
 
       window.downloadJSON = () => {
-        window.open(`http://localhost:3000/api/export/json/${this.ecosystemId}?token=${token}`, '_blank');
+        window.open(`/api/export/json/${this.ecosystemId}?token=${token}`, '_blank');
       };
 
       window.downloadPDF = () => {
-        window.open(`http://localhost:3000/api/export/pdf/${this.ecosystemId}?token=${token}`, '_blank');
+        window.open(`/api/export/pdf/${this.ecosystemId}?token=${token}`, '_blank');
       };
 
       // KPI Tab Switching

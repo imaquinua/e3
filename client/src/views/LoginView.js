@@ -53,7 +53,7 @@ export class LoginView {
   async mounted() {
     // Google login function
     window.loginWithGoogle = () => {
-      window.location.href = 'http://localhost:3000/api/auth/google';
+      window.location.href = '/api/auth/google';
     };
 
     const form = document.getElementById('loginForm');
