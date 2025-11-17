@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import db from '../models/database.js';
+import sql from '../models/database.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -14,10 +14,10 @@ export function initializePassport() {
   });
 
   // Deserialize user
-  passport.deserializeUser((id, done) => {
+  passport.deserializeUser(async (id, done) => {
     try {
-      const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
-      done(null, user);
+      const result = await sql`SELECT * FROM users WHERE id = ${id}`;
+      done(null, result.rows[0]);
     } catch (error) {
       done(error, null);
     }

@@ -34,8 +34,11 @@ router.post('/register', strictRateLimiter, registerValidation, async (req, res,
     const { email, password, name } = req.body;
 
     // Check if user exists
-    const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (existingUser) {
+    const existingUserResult = await db.execute({
+      sql: 'SELECT id FROM users WHERE email = ?',
+      args: [email]
+    });
+    if (existingUserResult.rows.length > 0) {
       throw new AppError('Email already registered', 409);
     }
 
@@ -46,10 +49,10 @@ router.post('/register', strictRateLimiter, registerValidation, async (req, res,
     const userId = uuidv4();
     const now = Date.now();
 
-    db.prepare(`
-      INSERT INTO users (id, email, password, name, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(userId, email, hashedPassword, name || null, now, now);
+    await db.execute({
+      sql: 'INSERT INTO users (id, email, password, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [userId, email, hashedPassword, name || null, now, now]
+    });
 
     // Generate token
     const token = jwt.sign(
@@ -78,7 +81,11 @@ router.post('/login', strictRateLimiter, loginValidation, async (req, res, next)
     const { email, password } = req.body;
 
     // Find user
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const userResult = await db.execute({
+      sql: 'SELECT * FROM users WHERE email = ?',
+      args: [email]
+    });
+    const user = userResult.rows[0];
     if (!user) {
       throw new AppError('Invalid credentials', 401);
     }
@@ -120,7 +127,11 @@ router.get('/me', async (req, res, next) => {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ?').get(decoded.userId);
+    const userResult = await db.execute({
+      sql: 'SELECT id, email, name, created_at FROM users WHERE id = ?',
+      args: [decoded.userId]
+    });
+    const user = userResult.rows[0];
     if (!user) {
       throw new AppError('User not found', 404);
     }
