@@ -26,9 +26,22 @@
   border: 1px solid var(--border-color);
 }
 
+/* Compact tooltip variant - less intrusive */
+.tooltip-compact {
+  max-width: 220px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  opacity: 0.95;
+}
+
 .tooltip-visible {
   opacity: 1;
   transform: scale(1);
+}
+
+.tooltip-compact.tooltip-visible {
+  opacity: 0.95;
 }
 
 .tooltip-arrow {
@@ -71,6 +84,11 @@
   background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
   color: white;
   border: none;
+}
+
+.tooltip-info.tooltip-compact {
+  background: rgba(40, 40, 40, 0.96);
+  backdrop-filter: blur(8px);
 }
 
 .tooltip-info .tooltip-arrow {

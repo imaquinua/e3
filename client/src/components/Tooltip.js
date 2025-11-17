@@ -6,6 +6,9 @@ export class Tooltip {
     this.container = null;
     this.activeTooltip = null;
     this.hideTimeout = null;
+    this.showTimeout = null;
+    this.isScrolling = false;
+    this.scrollTimeout = null;
   }
 
   init() {
@@ -22,6 +25,20 @@ export class Tooltip {
   }
 
   attachListeners() {
+    // Track scrolling to hide tooltips
+    document.addEventListener('scroll', () => {
+      this.isScrolling = true;
+      this.hide();
+
+      if (this.scrollTimeout) {
+        clearTimeout(this.scrollTimeout);
+      }
+
+      this.scrollTimeout = setTimeout(() => {
+        this.isScrolling = false;
+      }, 150);
+    }, true);
+
     document.addEventListener('mouseover', (e) => {
       const target = e.target.closest('[data-tooltip]');
       if (target) {
@@ -30,29 +47,58 @@ export class Tooltip {
           clearTimeout(this.hideTimeout);
           this.hideTimeout = null;
         }
-        this.show(target);
+
+        // Schedule show after delay (makes it less intrusive)
+        this.scheduleShow(target);
       }
     });
 
     document.addEventListener('mouseout', (e) => {
       const target = e.target.closest('[data-tooltip]');
       if (target) {
-        // Schedule hide after 1 second
-        this.scheduleHide();
+        // Cancel scheduled show
+        if (this.showTimeout) {
+          clearTimeout(this.showTimeout);
+          this.showTimeout = null;
+        }
+
+        // Schedule hide after short delay
+        this.scheduleHide(300);
       }
     });
 
-    // Mobile support - tap to show/hide
+    // Hide on click anywhere
     document.addEventListener('click', (e) => {
       const target = e.target.closest('[data-tooltip]');
+
+      // Mobile support - tap to show/hide
       if (target && window.innerWidth <= 768) {
         if (this.activeTooltip === target) {
           this.hide();
         } else {
           this.show(target);
         }
+      } else {
+        // Desktop - hide on any click
+        this.hide();
       }
     });
+  }
+
+  scheduleShow(element) {
+    // Don't show if scrolling
+    if (this.isScrolling) return;
+
+    // Clear any existing show timeout
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
+    }
+
+    // Wait 600ms before showing (gives user time to pass over)
+    this.showTimeout = setTimeout(() => {
+      this.show(element);
+      this.showTimeout = null;
+    }, 600);
   }
 
   show(element) {
@@ -61,13 +107,14 @@ export class Tooltip {
     const type = element.getAttribute('data-tooltip-type') || 'info';
 
     if (!text) return;
+    if (this.isScrolling) return;
 
     // Remove any existing tooltip
     this.hide();
 
     // Create tooltip element
     const tooltip = document.createElement('div');
-    tooltip.className = `tooltip tooltip-${type} tooltip-${position}`;
+    tooltip.className = `tooltip tooltip-${type} tooltip-${position} tooltip-compact`;
     tooltip.innerHTML = `
       <div class="tooltip-arrow"></div>
       <div class="tooltip-content">${this.escapeHTML(text)}</div>
@@ -85,24 +132,35 @@ export class Tooltip {
     });
   }
 
-  scheduleHide() {
+  scheduleHide(delay = 300) {
     // Clear any existing timeout
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
     }
 
-    // Schedule hide after 1 second
+    // Clear any pending show
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
+      this.showTimeout = null;
+    }
+
+    // Schedule hide after delay
     this.hideTimeout = setTimeout(() => {
       this.hide();
       this.hideTimeout = null;
-    }, 1000);
+    }, delay);
   }
 
   hide() {
-    // Clear any pending timeout
+    // Clear any pending timeouts
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
       this.hideTimeout = null;
+    }
+
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
+      this.showTimeout = null;
     }
 
     const tooltip = this.container.querySelector('.tooltip');
@@ -110,7 +168,7 @@ export class Tooltip {
       tooltip.classList.remove('tooltip-visible');
       setTimeout(() => {
         tooltip.remove();
-      }, 200);
+      }, 150);
     }
     this.activeTooltip = null;
   }
