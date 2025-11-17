@@ -25,6 +25,7 @@ export function initializePassport() {
 
   // Google OAuth Strategy
   if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    console.log('✓ Configuring Google OAuth strategy');
     passport.use(
       new GoogleStrategy(
         {
@@ -76,7 +77,13 @@ export function initializePassport() {
         }
       )
     );
+  } else {
+    console.log('⚠ Google OAuth not configured (missing credentials)');
   }
+}
+
+export function isGoogleConfigured() {
+  return !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
 }
 
 export default passport;

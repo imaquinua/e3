@@ -7,6 +7,7 @@ import db from '../models/database.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { strictRateLimiter } from '../middleware/rateLimiter.js';
 import passport from 'passport';
+import { isGoogleConfigured } from '../config/passport.js';
 
 const router = express.Router();
 
@@ -131,35 +132,46 @@ router.get('/me', async (req, res, next) => {
 });
 
 // Google OAuth routes
-router.get('/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    session: false
-  })
-);
+if (isGoogleConfigured()) {
+  router.get('/google',
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+      session: false
+    })
+  );
 
-router.get('/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: '/login?error=google_auth_failed',
-    session: false
-  }),
-  (req, res) => {
-    try {
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: req.user.id, email: req.user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-      );
+  router.get('/google/callback',
+    passport.authenticate('google', {
+      failureRedirect: '/login?error=google_auth_failed',
+      session: false
+    }),
+    (req, res) => {
+      try {
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: req.user.id, email: req.user.email },
+          process.env.JWT_SECRET,
+          { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        );
 
-      // Redirect to frontend with token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
-    } catch (error) {
-      console.error('Google callback error:', error);
-      res.redirect('/login?error=token_generation_failed');
+        // Redirect to frontend with token
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+      } catch (error) {
+        console.error('Google callback error:', error);
+        res.redirect('/login?error=token_generation_failed');
+      }
     }
-  }
-);
+  );
+} else {
+  // Return error if Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth is not configured on this server' });
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth is not configured on this server' });
+  });
+}
 
 export default router;
