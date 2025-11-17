@@ -134,10 +134,12 @@
 
 .onboarding-tooltip {
   position: absolute;
-  background: white;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   max-width: 400px;
+  min-width: 300px;
   z-index: 10001;
   animation: slideIn 0.3s ease;
 }
@@ -171,13 +173,15 @@
 .onboarding-title {
   margin: 0 0 0.75rem 0;
   font-size: 1.25rem;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--color-text-primary);
 }
 
 .onboarding-content {
   margin: 0 0 1.5rem 0;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.6;
+  font-size: 1rem;
 }
 
 .onboarding-actions {
@@ -188,8 +192,16 @@
 
 .onboarding-actions .btn-text {
   margin-left: auto;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.onboarding-actions .btn-text:hover {
+  color: var(--color-text-primary);
 }
 
 /* Help Icon */
@@ -293,6 +305,17 @@
   color: var(--success-color);
 }
 
+/* Prevent overflow and ensure visibility */
+.onboarding-tooltip-left {
+  /* Ensure tooltip doesn't go off-screen on the left */
+  min-width: 300px;
+}
+
+.onboarding-tooltip-right {
+  /* Ensure tooltip doesn't go off-screen on the right */
+  min-width: 300px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .tooltip {
@@ -300,12 +323,22 @@
   }
 
   .onboarding-tooltip {
-    max-width: 90vw;
-    left: 5vw !important;
-    right: 5vw !important;
+    max-width: calc(100vw - 2rem) !important;
+    min-width: unset !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
   }
 
   .onboarding-tooltip-content {
     padding: 1.5rem;
+  }
+}
+
+/* Additional overflow protection */
+@media (min-width: 769px) {
+  .onboarding-tooltip {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
   }
 }

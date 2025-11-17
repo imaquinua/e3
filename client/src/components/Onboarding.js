@@ -130,6 +130,9 @@ export class Onboarding {
 
     setTimeout(() => {
       const tooltipRect = tooltip.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const padding = 20;
       let top, left;
 
       switch (position) {
@@ -144,11 +147,39 @@ export class Onboarding {
         case 'left':
           top = rect.top + window.scrollY + (rect.height / 2) - (tooltipRect.height / 2);
           left = rect.left - tooltipRect.width - 20;
+          // If tooltip goes off left edge, position it to the right instead
+          if (left < padding) {
+            left = rect.right + 20;
+          }
           break;
         case 'right':
           top = rect.top + window.scrollY + (rect.height / 2) - (tooltipRect.height / 2);
           left = rect.right + 20;
+          // If tooltip goes off right edge, position it to the left instead
+          if (left + tooltipRect.width > viewportWidth - padding) {
+            left = rect.left - tooltipRect.width - 20;
+          }
           break;
+      }
+
+      // Ensure tooltip doesn't go off left edge
+      if (left < padding) {
+        left = padding;
+      }
+
+      // Ensure tooltip doesn't go off right edge
+      if (left + tooltipRect.width > viewportWidth - padding) {
+        left = viewportWidth - tooltipRect.width - padding;
+      }
+
+      // Ensure tooltip doesn't go off top edge
+      if (top < window.scrollY + padding) {
+        top = window.scrollY + padding;
+      }
+
+      // Ensure tooltip doesn't go off bottom edge
+      if (top + tooltipRect.height > window.scrollY + viewportHeight - padding) {
+        top = window.scrollY + viewportHeight - tooltipRect.height - padding;
       }
 
       tooltip.style.top = `${top}px`;
