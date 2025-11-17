@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E³ Generator - De Estrategia a Ecosistema</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --black: #000000;
+            --gray-900: #111111;
+            --gray-800: #1a1a1a;
+            --gray-700: #2d2d2d;
+            --gray-600: #4a4a4a;
+            --gray-500: #6b6b6b;
+            --gray-400: #8e8e8e;
+            --gray-300: #b8b8b8;
+            --gray-200: #e1e1e1;
+            --gray-100: #f4f4f4;
+            --white: #ffffff;
+            --accent: #0066ff;
+        }
+        
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-900);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Container */
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--gray-700);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--white), var(--gray-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--gray-400);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+        
+        /* Input Section */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+            background: var(--gray-800);
+            padding: 40px;
+            border-radius: 16px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-400);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-700);
+            color: var(--white);
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--black);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Value Proposition Canvas */
+        .vpc-section {
+            background: var(--gray-800);
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .vpc-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--white);
+        }
+        
+        .vpc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .vpc-box {
+            background: var(--gray-900);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-700);
+        }
+        
+        .vpc-box-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--gray-300);
+        }
+        
+        /* Generate Button */
+        .generate-btn {
+            width: 100%;
+            padding: 20px;
+            background: var(--accent);
+            color: var(--white);
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 40px 0;
+        }
+        
+        .generate-btn:hover:not(:disabled) {
+            background: #0052cc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+        }
+        
+        .generate-btn:disabled {
+            background: var(--gray-700);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        /* Results Section */
+        #results {
+            display: none;
+        }
+        
+        #results.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Strategy Overview */
+        .strategy-overview {
+            background: linear-gradient(135deg, var(--gray-800), var(--gray-900));
+            padding: 40px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            border: 1px solid var(--gray-700);
+        }
+        
+        .strategy-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+        
+        .metric-card {
+            background: var(--gray-900);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--gray-700);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-400);
+        }
+        
+        /* E³ Content Tree */
+        .content-tree {
+            margin-bottom: 60px;
+        }
+        
+        .stage-container {
+            background: var(--gray-800);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid var(--gray-700);
+        }
+        
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-700);
+        }
+        
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .stage-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stage-maslow {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            padding: 4px 12px;
+            background: var(--gray-900);
+            border-radius: 20px;
+        }
+        
+        .stage-budget {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .stage-metrics {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .stage-metric {
+            padding: 8px 16px;
+            background: var(--gray-900);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .stage-metric span {
+            color: var(--gray-400);
+        }
+        
+        .stage-metric strong {
+            color: var(--white);
+            margin-left: 8px;
+        }
+        
+        /* Content Pieces Grid */
+        .pieces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .piece-card {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-700);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .piece-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .piece-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .piece-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .piece-score {
+            padding: 4px 8px;
+            background: var(--gray-800);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .piece-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--white);
+            line-height: 1.4;
+        }
+        
+        .piece-description {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .piece-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .tag {
+            padding: 4px 10px;
+            background: var(--gray-800);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--gray-300);
+        }
+        
+        .piece-metrics {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-800);
+            font-size: 0.8rem;
+        }
+        
+        .piece-metric {
+            color: var(--gray-400);
+        }
+        
+        .piece-metric strong {
+            color: var(--white);
+        }
+        
+        /* Distribution Chart */
+        .distribution-chart {
+            background: var(--gray-800);
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            height: 200px;
+            margin-bottom: 16px;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), var(--gray-600));
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .chart-labels {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .chart-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--gray-400);
+        }
+        
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--gray-700);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--gray-400);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vpc-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pieces-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>E³ Content Generator</h1>
+            <p class="subtitle">De estrategia a ecosistema completo de contenido</p>
+        </div>
+        
+        <!-- Input Section -->
+        <div class="input-grid">
+            <div class="input-group">
+                <label class="input-label">Objetivo Principal</label>
+                <select id="objetivo">
+                    <option value="">Seleccionar...</option>
+                    <option value="lanzamiento">Lanzamiento de Producto</option>
+                    <option value="awareness">Construcción de Marca</option>
+                    <option value="leads">Generación de Leads</option>
+                    <option value="ventas">Ventas Directas</option>
+                    <option value="retencion">Retención y LTV</option>
+                    <option value="advocacy">Advocacy y Referidos</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Presupuesto Total</label>
+                <input type="text" id="presupuesto" placeholder="Ej: $10,000 USD">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Producto/Servicio</label>
+                <input type="text" id="producto" placeholder="Ej: SaaS de gestión de proyectos">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Mercado</label>
+                <input type="text" id="mercado" placeholder="Ej: LATAM, B2B">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Audiencia Principal</label>
+                <textarea id="audiencia" placeholder="Ej: Gerentes de proyecto, 30-45 años, empresas medianas, tech-savvy"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Propuesta de Valor</label>
+                <textarea id="propuesta" placeholder="Ej: Reducimos 40% el tiempo de gestión con IA predictiva"></textarea>
+            </div>
+        </div>
+        
+        <!-- Value Proposition Canvas -->
+        <div class="vpc-section">
+            <h2 class="vpc-title">Value Proposition Canvas</h2>
+            <div class="vpc-grid">
+                <div class="vpc-box">
+                    <div class="vpc-box-title">Customer Pains 😣</div>
+                    <textarea id="pains" placeholder="Lista los principales dolores/frustraciones:
+- Pérdida de tiempo en reuniones
+- Falta de visibilidad del progreso
+- Comunicación fragmentada
+- Costos ocultos por retrasos"></textarea>
+                </div>
+                
+                <div class="vpc-box">
+                    <div class="vpc-box-title">Customer Gains 🎯</div>
+                    <textarea id="gains" placeholder="Lista los beneficios deseados:
+- Mayor productividad del equipo
+- Decisiones basadas en datos
+- Reconocimiento por resultados
+- Balance vida-trabajo"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generate Button -->
+        <button class="generate-btn" onclick="generateEcosystem()">
+            🚀 Generar Ecosistema E³ Completo
+        </button>
+        
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Generando ecosistema de contenido con E³...</p>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="results">
+            <!-- Strategy Overview -->
+            <div class="strategy-overview">
+                <h2 style="margin-bottom: 24px;">📊 Estrategia E³ Generada</h2>
+                <div class="strategy-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalPieces">--</div>
+                        <div class="metric-label">Piezas Totales</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="avgROAS">--</div>
+                        <div class="metric-label">ROAS Proyectado</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="timeframe">--</div>
+                        <div class="metric-label">Timeframe</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="channels">--</div>
+                        <div class="metric-label">Canales</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distribution Chart -->
+            <div class="distribution-chart">
+                <h3 class="chart-title">Distribución de Presupuesto por Etapa</h3>
+                <div class="chart-bars" id="chartBars">
+                    <!-- Dynamic bars -->
+                </div>
+                <div class="chart-labels">
+                    <div class="chart-label">SEE</div>
+                    <div class="chart-label">THINK</div>
+                    <div class="chart-label">DO</div>
+                    <div class="chart-label">CARE</div>
+                </div>
+            </div>
+            
+            <!-- Content Tree -->
+            <div class="content-tree" id="contentTree">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // E³ Model Configuration
+        const E3_TEMPLATES = {
+            see: {
+                maslow: 'Necesidades Básicas',
+                kpis: ['Alcance', 'Impresiones', 'CPM', 'Brand Awareness'],
+                channels: ['Meta Ads', 'Google Display', 'TikTok', 'YouTube'],
+                formats: ['Video 15s', 'Carousel', 'Single Image', 'Stories'],
+                buyingMoment: 'Descubrimiento pasivo',
+                contentTypes: [
+                    {
+                        type: 'Hero Video',
+                        description: 'Video emocional de marca que conecta con el problema',
+                        kpi: 'Views + Reach',
+                        budget: 15
+                    },
+                    {
+                        type: 'Problem Agitation',
+                        description: 'Contenido que evidencia el pain point principal',
+                        kpi: 'Engagement Rate',
+                        budget: 10
+                    },
+                    {
+                        type: 'Category Education',
+                        description: 'Contenido educativo sobre la categoría',
+                        kpi: 'Time Spent',
+                        budget: 8
+                    },
+                    {
+                        type: 'Trend Jacking',
+                        description: 'Contenido que aprovecha tendencias actuales',
+                        kpi: 'Shares',
+                        budget: 7
+                    }
+                ]
+            },
+            think: {
+                maslow: 'Seguridad + Pertenencia',
+                kpis: ['CTR', 'Engagement', 'Add to Cart', 'Brand Search', 'Time on Site'],
+                channels: ['Google Search', 'Meta Retargeting', 'LinkedIn', 'Email'],
+                formats: ['Blog Post', 'Webinar', 'Case Study', 'Comparison Chart'],
+                buyingMoment: 'Investigación activa',
+                contentTypes: [
+                    {
+                        type: 'Social Proof',
+                        description: 'Testimonios y casos de éxito de clientes similares',
+                        kpi: 'Trust Score',
+                        budget: 12
+                    },
+                    {
+                        type: 'Product Demo',
+                        description: 'Demostración detallada de características clave',
+                        kpi: 'Demo Requests',
+                        budget: 15
+                    },
+                    {
+                        type: 'Comparison Content',
+                        description: 'Comparativas vs competencia y alternativas',
+                        kpi: 'Consideration Rate',
+                        budget: 10
+                    },
+                    {
+                        type: 'Authority Content',
+                        description: 'Whitepapers y estudios que posicionan expertise',
+                        kpi: 'Download Rate',
+                        budget: 8
+                    },
+                    {
+                        type: 'Community Building',
+                        description: 'Contenido que construye sentido de tribu',
+                        kpi: 'Community Join',
+                        budget: 10
+                    }
+                ]
+            },
+            do: {
+                maslow: 'Autoestima',
+                kpis: ['Conversion Rate', 'ROAS', 'CPA', 'AOV', 'Cart Completion'],
+                channels: ['Google Shopping', 'Meta DPA', 'Email Automation', 'SMS'],
+                formats: ['Landing Page', 'Offer Email', 'Retargeting Ad', 'Cart Recovery'],
+                buyingMoment: 'Decisión de compra',
+                contentTypes: [
+                    {
+                        type: 'Limited Offer',
+                        description: 'Ofertas con urgencia temporal o de inventario',
+                        kpi: 'Conversion Rate',
+                        budget: 20
+                    },
+                    {
+                        type: 'Risk Reversal',
+                        description: 'Garantías y pruebas gratuitas',
+                        kpi: 'Trial Starts',
+                        budget: 15
+                    },
+                    {
+                        type: 'Bundle Deal',
+                        description: 'Paquetes de valor agregado',
+                        kpi: 'AOV Increase',
+                        budget: 12
+                    },
+                    {
+                        type: 'Abandonment Recovery',
+                        description: 'Secuencias de recuperación de carritos',
+                        kpi: 'Recovery Rate',
+                        budget: 10
+                    }
+                ]
+            },
+            care: {
+                maslow: 'Autorrealización',
+                kpis: ['LTV', 'NPS', 'Retention Rate', 'Referral Rate', 'Upsell Rate'],
+                channels: ['Email', 'In-App', 'Community', 'WhatsApp'],
+                formats: ['Newsletter', 'Tutorial', 'Exclusive Content', 'Loyalty Program'],
+                buyingMoment: 'Post-compra y advocacy',
+                contentTypes: [
+                    {
+                        type: 'Onboarding Sequence',
+                        description: 'Serie de contenidos para maximizar adopción',
+                        kpi: 'Activation Rate',
+                        budget: 10
+                    },
+                    {
+                        type: 'Success Content',
+                        description: 'Contenido para ayudar a alcanzar objetivos',
+                        kpi: 'Product Usage',
+                        budget: 8
+                    },
+                    {
+                        type: 'VIP Program',
+                        description: 'Beneficios exclusivos para mejores clientes',
+                        kpi: 'LTV Increase',
+                        budget: 12
+                    },
+                    {
+                        type: 'Referral Campaign',
+                        description: 'Programa de referidos con incentivos',
+                        kpi: 'Referral Rate',
+                        budget: 15
+                    },
+                    {
+                        type: 'Co-creation',
+                        description: 'Contenido creado con la comunidad',
+                        kpi: 'Advocacy Score',
+                        budget: 5
+                    }
+                ]
+            }
+        };
+        
+        // Generate Ecosystem
+        function generateEcosystem() {
+            // Validate inputs
+            const objetivo = document.getElementById('objetivo').value;
+            const presupuesto = document.getElementById('presupuesto').value;
+            const producto = document.getElementById('producto').value;
+            
+            if (!objetivo || !presupuesto || !producto) {
+                alert('Por favor completa al menos: Objetivo, Presupuesto y Producto');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            
+            // Simulate generation
+            setTimeout(() => {
+                buildEcosystem();
+            }, 2000);
+        }
+        
+        function buildEcosystem() {
+            const data = {
+                objetivo: document.getElementById('objetivo').value,
+                presupuesto: document.getElementById('presupuesto').value,
+                producto: document.getElementById('producto').value,
+                mercado: document.getElementById('mercado').value,
+                audiencia: document.getElementById('audiencia').value,
+                propuesta: document.getElementById('propuesta').value,
+                pains: document.getElementById('pains').value.split('\n').filter(p => p.trim()),
+                gains: document.getElementById('gains').value.split('\n').filter(g => g.trim())
+            };
+            
+            // Calculate budget distribution based on objective
+            const distribution = calculateBudgetDistribution(data.objetivo);
+            const budget = parseInt(data.presupuesto.replace(/\D/g, '')) || 10000;
+            
+            // Generate content pieces for each stage
+            const ecosystem = {
+                see: generateStagePieces('see', budget * distribution.see, data),
+                think: generateStagePieces('think', budget * distribution.think, data),
+                do: generateStagePieces('do', budget * distribution.do, data),
+                care: generateStagePieces('care', budget * distribution.care, data)
+            };
+            
+            // Display results
+            displayEcosystem(ecosystem, data, distribution, budget);
+            
+            // Hide loading, show results
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+        }
+        
+        function calculateBudgetDistribution(objetivo) {
+            const distributions = {
+                'lanzamiento': { see: 0.35, think: 0.30, do: 0.25, care: 0.10 },
+                'awareness': { see: 0.45, think: 0.30, do: 0.15, care: 0.10 },
+                'leads': { see: 0.20, think: 0.40, do: 0.30, care: 0.10 },
+                'ventas': { see: 0.15, think: 0.25, do: 0.45, care: 0.15 },
+                'retencion': { see: 0.10, think: 0.15, do: 0.25, care: 0.50 },
+                'advocacy': { see: 0.05, think: 0.15, do: 0.20, care: 0.60 }
+            };
+            
+            return distributions[objetivo] || { see: 0.25, think: 0.25, do: 0.25, care: 0.25 };
+        }
+        
+        function generateStagePieces(stage, stageBudget, data) {
+            const template = E3_TEMPLATES[stage];
+            const pieces = [];
+            
+            template.contentTypes.forEach(contentType => {
+                const pieceBudget = (stageBudget * contentType.budget) / 100;
+                const numPieces = Math.max(1, Math.floor(pieceBudget / 500)); // Assume $500 per piece minimum
+                
+                for (let i = 0; i < numPieces; i++) {
+                    pieces.push({
+                        type: contentType.type,
+                        title: generateTitle(contentType.type, data),
+                        description: contentType.description,
+                        kpi: contentType.kpi,
+                        budget: Math.floor(pieceBudget / numPieces),
+                        channel: template.channels[Math.floor(Math.random() * template.channels.length)],
+                        format: template.formats[Math.floor(Math.random() * template.formats.length)],
+                        score: 70 + Math.floor(Math.random() * 25),
+                        pain: data.pains[Math.floor(Math.random() * data.pains.length)] || 'General',
+                        gain: data.gains[Math.floor(Math.random() * data.gains.length)] || 'General'
+                    });
+                }
+            });
+            
+            return pieces;
+        }
+        
+        function generateTitle(type, data) {
+            const templates = {
+                'Hero Video': `${data.producto}: La revolución que esperabas`,
+                'Problem Agitation': `¿Cansado de ${data.pains[0] || 'problemas'}?`,
+                'Social Proof': `Cómo ${data.mercado} está transformando su ${data.producto}`,
+                'Product Demo': `${data.producto} en acción: Tutorial completo`,
+                'Limited Offer': `48 horas: ${data.propuesta}`,
+                'Onboarding Sequence': `Bienvenido a ${data.producto}: Primeros pasos`,
+                'VIP Program': `Club exclusivo ${data.producto}: Beneficios premium`,
+                'Referral Campaign': `Comparte ${data.producto} y gana`,
+                'Category Education': `Guía definitiva de ${data.producto}`,
+                'Comparison Content': `${data.producto} vs. La competencia`,
+                'Authority Content': `Estudio: El futuro de ${data.mercado}`,
+                'Community Building': `Únete a la comunidad ${data.producto}`,
+                'Risk Reversal': `Prueba ${data.producto} sin riesgo por 30 días`,
+                'Bundle Deal': `Pack completo ${data.producto}: Ahorra 40%`,
+                'Abandonment Recovery': `Tu ${data.producto} te está esperando`,
+                'Success Content': `Maximiza tu ROI con ${data.producto}`,
+                'Co-creation': `Creado con nuestra comunidad`,
+                'Trend Jacking': `${data.producto} x Tendencia del momento`
+            };
+            
+            return templates[type] || `${type}: ${data.producto}`;
+        }
+        
+        function displayEcosystem(ecosystem, data, distribution, budget) {
+            // Update overview metrics
+            const totalPieces = Object.values(ecosystem).flat().length;
+            document.getElementById('totalPieces').textContent = totalPieces;
+            document.getElementById('avgROAS').textContent = '4.2x';
+            document.getElementById('timeframe').textContent = '90 días';
+            document.getElementById('channels').textContent = '8';
+            
+            // Update distribution chart
+            const chartBars = document.getElementById('chartBars');
+            chartBars.innerHTML = '';
+            
+            ['see', 'think', 'do', 'care'].forEach(stage => {
+                const percentage = distribution[stage] * 100;
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = `${percentage * 2}px`;
+                bar.innerHTML = `<div class="bar-value">${percentage.toFixed(0)}%</div>`;
+                chartBars.appendChild(bar);
+            });
+            
+            // Build content tree
+            const contentTree = document.getElementById('contentTree');
+            contentTree.innerHTML = '';
+            
+            ['see', 'think', 'do', 'care'].forEach(stage => {
+                const template = E3_TEMPLATES[stage];
+                const stageBudget = budget * distribution[stage];
+                const stagePieces = ecosystem[stage];
+                
+                const stageHTML = `
+                    <div class="stage-container">
+                        <div class="stage-header">
+                            <div class="stage-title">
+                                <span class="stage-name">${stage.toUpperCase()}</span>
+                                <span class="stage-maslow">${template.maslow}</span>
+                            </div>
+                            <div class="stage-budget">$${stageBudget.toLocaleString()}</div>
+                        </div>
+                        
+                        <div class="stage-metrics">
+                            ${template.kpis.slice(0, 3).map(kpi => `
+                                <div class="stage-metric">
+                                    <span>KPI:</span><strong>${kpi}</strong>
+                                </div>
+                            `).join('')}
+                            <div class="stage-metric">
+                                <span>Momento:</span><strong>${template.buyingMoment}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="pieces-grid">
+                            ${stagePieces.map(piece => `
+                                <div class="piece-card">
+                                    <div class="piece-header">
+                                        <div class="piece-type">${piece.type}</div>
+                                        <div class="piece-score">${piece.score}%</div>
+                                    </div>
+                                    
+                                    <div class="piece-title">${piece.title}</div>
+                                    
+                                    <div class="piece-description">${piece.description}</div>
+                                    
+                                    <div class="piece-tags">
+                                        <span class="tag">${piece.channel}</span>
+                                        <span class="tag">${piece.format}</span>
+                                    </div>
+                                    
+                                    <div class="piece-metrics">
+                                        <div class="piece-metric">
+                                            <strong>$${piece.budget.toLocaleString()}</strong>
+                                        </div>
+                                        <div class="piece-metric">
+                                            KPI: <strong>${piece.kpi}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                contentTree.innerHTML += stageHTML;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="E³ Content Generator - Plataforma profesional para crear ecosistemas de contenido estratégico">
+    <title>E³ Content Generator</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Loading screen shown initially -->
+        <div class="loading-screen" id="initial-loading">
+            <div class="spinner"></div>
+            <p>Cargando E³ Generator...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

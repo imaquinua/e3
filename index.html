@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="E³ Content Generator - Plataforma profesional para crear ecosistemas de contenido estratégico">
+    <title>E³ Content Generator - De Estrategia a Ecosistema</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="src/styles/reset.css">
+    <link rel="stylesheet" href="src/styles/variables.css">
+    <link rel="stylesheet" href="src/styles/layout.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="src/styles/views.css">
+    <link rel="stylesheet" href="src/styles/responsive.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Navegación principal">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1 class="brand-logo">E³</h1>
+                <span class="brand-text">Content Generator</span>
+            </div>
+
+            <ul class="nav-menu" role="menubar">
+                <li role="none">
+                    <a href="#home" class="nav-link active" role="menuitem" data-route="home">
+                        Inicio
+                    </a>
+                </li>
+                <li role="none">
+                    <a href="#generator" class="nav-link" role="menuitem" data-route="generator">
+                        Generador
+                    </a>
+                </li>
+                <li role="none">
+                    <a href="#history" class="nav-link" role="menuitem" data-route="history">
+                        Historial
+                    </a>
+                </li>
+                <li role="none">
+                    <a href="#analytics" class="nav-link" role="menuitem" data-route="analytics">
+                        Analytics
+                    </a>
+                </li>
+            </ul>
+
+            <button class="menu-toggle" aria-label="Abrir menú de navegación" aria-expanded="false">
+                <span class="hamburger"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="app" role="main" class="app-container">
+        <!-- Dynamic content will be loaded here -->
+        <div class="loading-screen" role="status" aria-live="polite">
+            <div class="spinner"></div>
+            <p>Cargando aplicación...</p>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" role="dialog" aria-modal="true" aria-hidden="true"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="src/scripts/core/app.js"></script>
+</body>
+</html>
