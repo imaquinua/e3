@@ -11,16 +11,20 @@ const router = express.Router();
 router.use(authenticate);
 
 // Get all projects for current user
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const projects = db.prepare(`
-      SELECT p.*, COUNT(e.id) as ecosystem_count
-      FROM projects p
-      LEFT JOIN ecosystems e ON p.id = e.project_id
-      WHERE p.user_id = ?
-      GROUP BY p.id
-      ORDER BY p.updated_at DESC
-    `).all(req.user.userId);
+    const result = await db.execute({
+      sql: `
+        SELECT p.*, COUNT(e.id) as ecosystem_count
+        FROM projects p
+        LEFT JOIN ecosystems e ON p.id = e.project_id
+        WHERE p.user_id = ?
+        GROUP BY p.id
+        ORDER BY p.updated_at DESC
+      `,
+      args: [req.user.userId]
+    });
+    const projects = result.rows;
 
     res.json({ projects });
   } catch (error) {
@@ -29,21 +33,27 @@ router.get('/', (req, res, next) => {
 });
 
 // Get single project
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
-    const project = db.prepare(`
-      SELECT * FROM projects
-      WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user.userId);
+    const projectResult = await db.execute({
+      sql: `
+        SELECT * FROM projects
+        WHERE id = ? AND user_id = ?
+      `,
+      args: [req.params.id, req.user.userId]
+    });
+    const project = projectResult.rows[0];
 
     if (!project) {
       throw new AppError('Project not found', 404);
     }
 
     // Get ecosystems for this project
-    const ecosystems = db.prepare(`
-      SELECT * FROM ecosystems WHERE project_id = ?
-    `).all(project.id);
+    const ecosystemsResult = await db.execute({
+      sql: `SELECT * FROM ecosystems WHERE project_id = ?`,
+      args: [project.id]
+    });
+    const ecosystems = ecosystemsResult.rows;
 
     res.json({ project: { ...project, ecosystems } });
   } catch (error) {
@@ -55,7 +65,7 @@ router.get('/:id', (req, res, next) => {
 router.post('/', [
   body('name').trim().isLength({ min: 1, max: 200 }),
   body('description').optional().trim(),
-], (req, res, next) => {
+], async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -66,12 +76,19 @@ router.post('/', [
     const id = uuidv4();
     const now = Date.now();
 
-    db.prepare(`
-      INSERT INTO projects (id, user_id, name, description, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'draft', ?, ?)
-    `).run(id, req.user.userId, name, description || null, now, now);
+    await db.execute({
+      sql: `
+        INSERT INTO projects (id, user_id, name, description, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'draft', ?, ?)
+      `,
+      args: [id, req.user.userId, name, description || null, now, now]
+    });
 
-    const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
+    const projectResult = await db.execute({
+      sql: 'SELECT * FROM projects WHERE id = ?',
+      args: [id]
+    });
+    const project = projectResult.rows[0];
 
     res.status(201).json({ project });
   } catch (error) {
@@ -84,7 +101,7 @@ router.put('/:id', [
   body('name').optional().trim().isLength({ min: 1, max: 200 }),
   body('description').optional().trim(),
   body('status').optional().isIn(['draft', 'active', 'archived']),
-], (req, res, next) => {
+], async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -92,9 +109,11 @@ router.put('/:id', [
     }
 
     // Check if project exists and belongs to user
-    const existing = db.prepare(`
-      SELECT id FROM projects WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user.userId);
+    const existingResult = await db.execute({
+      sql: `SELECT id FROM projects WHERE id = ? AND user_id = ?`,
+      args: [req.params.id, req.user.userId]
+    });
+    const existing = existingResult.rows[0];
 
     if (!existing) {
       throw new AppError('Project not found', 404);
@@ -125,11 +144,16 @@ router.put('/:id', [
     values.push(Date.now());
     values.push(req.params.id);
 
-    db.prepare(`
-      UPDATE projects SET ${updates.join(', ')} WHERE id = ?
-    `).run(...values);
+    await db.execute({
+      sql: `UPDATE projects SET ${updates.join(', ')} WHERE id = ?`,
+      args: values
+    });
 
-    const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id);
+    const projectResult = await db.execute({
+      sql: 'SELECT * FROM projects WHERE id = ?',
+      args: [req.params.id]
+    });
+    const project = projectResult.rows[0];
 
     res.json({ project });
   } catch (error) {
@@ -138,13 +162,14 @@ router.put('/:id', [
 });
 
 // Delete project
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
-    const result = db.prepare(`
-      DELETE FROM projects WHERE id = ? AND user_id = ?
-    `).run(req.params.id, req.user.userId);
+    const result = await db.execute({
+      sql: `DELETE FROM projects WHERE id = ? AND user_id = ?`,
+      args: [req.params.id, req.user.userId]
+    });
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new AppError('Project not found', 404);
     }
 

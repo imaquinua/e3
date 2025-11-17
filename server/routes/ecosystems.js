@@ -13,20 +13,24 @@ const router = express.Router();
 router.use(authenticate);
 
 // Get all ecosystems for a project
-router.get('/project/:projectId', (req, res, next) => {
+router.get('/project/:projectId', async (req, res, next) => {
   try {
     // Verify project belongs to user
-    const project = db.prepare(`
-      SELECT id FROM projects WHERE id = ? AND user_id = ?
-    `).get(req.params.projectId, req.user.userId);
+    const projectResult = await db.execute({
+      sql: `SELECT id FROM projects WHERE id = ? AND user_id = ?`,
+      args: [req.params.projectId, req.user.userId]
+    });
+    const project = projectResult.rows[0];
 
     if (!project) {
       throw new AppError('Project not found', 404);
     }
 
-    const ecosystems = db.prepare(`
-      SELECT * FROM ecosystems WHERE project_id = ? ORDER BY created_at DESC
-    `).all(req.params.projectId);
+    const ecosystemsResult = await db.execute({
+      sql: `SELECT * FROM ecosystems WHERE project_id = ? ORDER BY created_at DESC`,
+      args: [req.params.projectId]
+    });
+    const ecosystems = ecosystemsResult.rows;
 
     res.json({ ecosystems });
   } catch (error) {
@@ -35,23 +39,29 @@ router.get('/project/:projectId', (req, res, next) => {
 });
 
 // Get single ecosystem with content pieces
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
-    const ecosystem = db.prepare(`
-      SELECT e.*, p.user_id
-      FROM ecosystems e
-      JOIN projects p ON e.project_id = p.id
-      WHERE e.id = ? AND p.user_id = ?
-    `).get(req.params.id, req.user.userId);
+    const ecosystemResult = await db.execute({
+      sql: `
+        SELECT e.*, p.user_id
+        FROM ecosystems e
+        JOIN projects p ON e.project_id = p.id
+        WHERE e.id = ? AND p.user_id = ?
+      `,
+      args: [req.params.id, req.user.userId]
+    });
+    const ecosystem = ecosystemResult.rows[0];
 
     if (!ecosystem) {
       throw new AppError('Ecosystem not found', 404);
     }
 
     // Get content pieces
-    const pieces = db.prepare(`
-      SELECT * FROM content_pieces WHERE ecosystem_id = ? ORDER BY stage, score DESC
-    `).all(ecosystem.id);
+    const piecesResult = await db.execute({
+      sql: `SELECT * FROM content_pieces WHERE ecosystem_id = ? ORDER BY stage, score DESC`,
+      args: [ecosystem.id]
+    });
+    const pieces = piecesResult.rows;
 
     // Parse JSON fields
     ecosystem.distribution = JSON.parse(ecosystem.distribution);
@@ -68,9 +78,11 @@ router.get('/:id', (req, res, next) => {
 
     // Get AI insights if available
     let aiInsights = null;
-    const insightsRow = db.prepare(`
-      SELECT * FROM ai_insights WHERE ecosystem_id = ?
-    `).get(ecosystem.id);
+    const insightsResult = await db.execute({
+      sql: `SELECT * FROM ai_insights WHERE ecosystem_id = ?`,
+      args: [ecosystem.id]
+    });
+    const insightsRow = insightsResult.rows[0];
 
     if (insightsRow) {
       aiInsights = {
@@ -112,9 +124,11 @@ router.post('/', [
     }
 
     // Verify project belongs to user
-    const project = db.prepare(`
-      SELECT id FROM projects WHERE id = ? AND user_id = ?
-    `).get(req.body.projectId, req.user.userId);
+    const projectResult = await db.execute({
+      sql: `SELECT id FROM projects WHERE id = ? AND user_id = ?`,
+      args: [req.body.projectId, req.user.userId]
+    });
+    const project = projectResult.rows[0];
 
     if (!project) {
       throw new AppError('Project not found', 404);
@@ -147,16 +161,16 @@ router.post('/', [
     const ecosystemId = uuidv4();
     const now = Date.now();
 
-    // Begin transaction
-    const insertEcosystem = db.transaction(() => {
-      // Insert ecosystem
-      db.prepare(`
+    // Insert ecosystem
+    await db.execute({
+      sql: `
         INSERT INTO ecosystems (
           id, project_id, objective, budget, product, market, audience,
           value_proposition, pains, gains, distribution, total_pieces,
           projected_roas, timeframe, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `,
+      args: [
         ecosystemId,
         projectId,
         objective,
@@ -173,19 +187,20 @@ router.post('/', [
         ecosystemData.timeframe,
         now,
         now
-      );
+      ]
+    });
 
-      // Insert content pieces
-      const insertPiece = db.prepare(`
-        INSERT INTO content_pieces (
-          id, ecosystem_id, stage, type, title, description, kpi, budget,
-          channel, format, score, pain, gain, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      for (const [stage, pieces] of Object.entries(ecosystemData.pieces)) {
-        for (const piece of pieces) {
-          insertPiece.run(
+    // Insert content pieces
+    for (const [stage, pieces] of Object.entries(ecosystemData.pieces)) {
+      for (const piece of pieces) {
+        await db.execute({
+          sql: `
+            INSERT INTO content_pieces (
+              id, ecosystem_id, stage, type, title, description, kpi, budget,
+              channel, format, score, pain, gain, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          args: [
             uuidv4(),
             ecosystemId,
             stage,
@@ -200,12 +215,10 @@ router.post('/', [
             piece.pain || null,
             piece.gain || null,
             now
-          );
-        }
+          ]
+        });
       }
-    });
-
-    insertEcosystem();
+    }
 
     // Generate AI insights (async, don't block response)
     let aiInsights = null;
@@ -227,21 +240,24 @@ router.post('/', [
 
         // Save AI insights to database
         const insightId = uuidv4();
-        db.prepare(`
-          INSERT INTO ai_insights (
-            id, ecosystem_id, audience_analysis, budget_optimization,
-            competitive_insights, kpi_guidance, enhanced_content, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          insightId,
-          ecosystemId,
-          JSON.stringify(aiInsights.audienceAnalysis),
-          JSON.stringify(aiInsights.budgetOptimization),
-          JSON.stringify(aiInsights.competitiveInsights),
-          JSON.stringify(aiInsights.kpiGuidance),
-          JSON.stringify(aiInsights.enhancedContent),
-          now
-        );
+        await db.execute({
+          sql: `
+            INSERT INTO ai_insights (
+              id, ecosystem_id, audience_analysis, budget_optimization,
+              competitive_insights, kpi_guidance, enhanced_content, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          args: [
+            insightId,
+            ecosystemId,
+            JSON.stringify(aiInsights.audienceAnalysis),
+            JSON.stringify(aiInsights.budgetOptimization),
+            JSON.stringify(aiInsights.competitiveInsights),
+            JSON.stringify(aiInsights.kpiGuidance),
+            JSON.stringify(aiInsights.enhancedContent),
+            now
+          ]
+        });
 
         console.log(`✓ AI insights generated for ecosystem ${ecosystemId}`);
       }
@@ -259,8 +275,17 @@ router.post('/', [
     });
 
     // Get created ecosystem
-    const ecosystem = db.prepare('SELECT * FROM ecosystems WHERE id = ?').get(ecosystemId);
-    const pieces = db.prepare('SELECT * FROM content_pieces WHERE ecosystem_id = ?').all(ecosystemId);
+    const ecosystemResult = await db.execute({
+      sql: 'SELECT * FROM ecosystems WHERE id = ?',
+      args: [ecosystemId]
+    });
+    const ecosystem = ecosystemResult.rows[0];
+
+    const piecesResult = await db.execute({
+      sql: 'SELECT * FROM content_pieces WHERE ecosystem_id = ?',
+      args: [ecosystemId]
+    });
+    const pieces = piecesResult.rows;
 
     res.status(201).json({
       ecosystem,
@@ -273,16 +298,19 @@ router.post('/', [
 });
 
 // Delete ecosystem
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
-    const result = db.prepare(`
-      DELETE FROM ecosystems
-      WHERE id = ? AND project_id IN (
-        SELECT id FROM projects WHERE user_id = ?
-      )
-    `).run(req.params.id, req.user.userId);
+    const result = await db.execute({
+      sql: `
+        DELETE FROM ecosystems
+        WHERE id = ? AND project_id IN (
+          SELECT id FROM projects WHERE user_id = ?
+        )
+      `,
+      args: [req.params.id, req.user.userId]
+    });
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new AppError('Ecosystem not found', 404);
     }
 

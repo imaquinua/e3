@@ -37,16 +37,19 @@ router.post('/chat', [
 
     // Track analytics
     const eventId = uuidv4();
-    db.prepare(`
-      INSERT INTO analytics_events (id, user_id, event_type, event_data, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(
-      eventId,
-      req.user.userId,
-      'ai_chat_query',
-      JSON.stringify({ messageLength: message.length, hasContext: Object.keys(context).length > 0 }),
-      Date.now()
-    );
+    await db.execute({
+      sql: `
+        INSERT INTO analytics_events (id, user_id, event_type, event_data, created_at)
+        VALUES (?, ?, ?, ?, ?)
+      `,
+      args: [
+        eventId,
+        req.user.userId,
+        'ai_chat_query',
+        JSON.stringify({ messageLength: message.length, hasContext: Object.keys(context).length > 0 }),
+        Date.now()
+      ]
+    });
 
     const response = await chatAssistant({
       message,
@@ -72,20 +75,26 @@ router.get('/insights/:ecosystemId', async (req, res, next) => {
     const { ecosystemId } = req.params;
 
     // Verify ecosystem belongs to user
-    const ecosystem = db.prepare(`
-      SELECT e.id FROM ecosystems e
-      JOIN projects p ON e.project_id = p.id
-      WHERE e.id = ? AND p.user_id = ?
-    `).get(ecosystemId, req.user.userId);
+    const ecosystemResult = await db.execute({
+      sql: `
+        SELECT e.id FROM ecosystems e
+        JOIN projects p ON e.project_id = p.id
+        WHERE e.id = ? AND p.user_id = ?
+      `,
+      args: [ecosystemId, req.user.userId]
+    });
+    const ecosystem = ecosystemResult.rows[0];
 
     if (!ecosystem) {
       return res.status(404).json({ error: 'Ecosystem not found' });
     }
 
     // Get AI insights
-    const insightsRow = db.prepare(`
-      SELECT * FROM ai_insights WHERE ecosystem_id = ?
-    `).get(ecosystemId);
+    const insightsResult = await db.execute({
+      sql: `SELECT * FROM ai_insights WHERE ecosystem_id = ?`,
+      args: [ecosystemId]
+    });
+    const insightsRow = insightsResult.rows[0];
 
     if (!insightsRow) {
       return res.status(404).json({

@@ -40,22 +40,28 @@ const authenticateExport = (req, res, next) => {
 router.use(authenticateExport);
 
 // Export ecosystem as JSON
-router.get('/json/:ecosystemId', (req, res, next) => {
+router.get('/json/:ecosystemId', async (req, res, next) => {
   try {
-    const ecosystem = db.prepare(`
-      SELECT e.*, p.user_id, p.name as project_name
-      FROM ecosystems e
-      JOIN projects p ON e.project_id = p.id
-      WHERE e.id = ? AND p.user_id = ?
-    `).get(req.params.ecosystemId, req.user.userId);
+    const ecosystemResult = await db.execute({
+      sql: `
+        SELECT e.*, p.user_id, p.name as project_name
+        FROM ecosystems e
+        JOIN projects p ON e.project_id = p.id
+        WHERE e.id = ? AND p.user_id = ?
+      `,
+      args: [req.params.ecosystemId, req.user.userId]
+    });
+    const ecosystem = ecosystemResult.rows[0];
 
     if (!ecosystem) {
       throw new AppError('Ecosystem not found', 404);
     }
 
-    const pieces = db.prepare(`
-      SELECT * FROM content_pieces WHERE ecosystem_id = ?
-    `).all(ecosystem.id);
+    const piecesResult = await db.execute({
+      sql: `SELECT * FROM content_pieces WHERE ecosystem_id = ?`,
+      args: [ecosystem.id]
+    });
+    const pieces = piecesResult.rows;
 
     const exportData = {
       ...ecosystem,
@@ -77,20 +83,26 @@ router.get('/json/:ecosystemId', (req, res, next) => {
 // Export ecosystem as PDF
 router.get('/pdf/:ecosystemId', async (req, res, next) => {
   try {
-    const ecosystem = db.prepare(`
-      SELECT e.*, p.name as project_name
-      FROM ecosystems e
-      JOIN projects p ON e.project_id = p.id
-      WHERE e.id = ? AND p.user_id = ?
-    `).get(req.params.ecosystemId, req.user.userId);
+    const ecosystemResult = await db.execute({
+      sql: `
+        SELECT e.*, p.name as project_name
+        FROM ecosystems e
+        JOIN projects p ON e.project_id = p.id
+        WHERE e.id = ? AND p.user_id = ?
+      `,
+      args: [req.params.ecosystemId, req.user.userId]
+    });
+    const ecosystem = ecosystemResult.rows[0];
 
     if (!ecosystem) {
       throw new AppError('Ecosystem not found', 404);
     }
 
-    const pieces = db.prepare(`
-      SELECT * FROM content_pieces WHERE ecosystem_id = ? ORDER BY stage, score DESC
-    `).all(ecosystem.id);
+    const piecesResult = await db.execute({
+      sql: `SELECT * FROM content_pieces WHERE ecosystem_id = ? ORDER BY stage, score DESC`,
+      args: [ecosystem.id]
+    });
+    const pieces = piecesResult.rows;
 
     const distribution = JSON.parse(ecosystem.distribution);
 
