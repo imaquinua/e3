@@ -21,13 +21,9 @@ export class AIChat {
 
     const chatHTML = `
       <div id="ai-chat-widget" class="ai-chat-widget ${this.isOpen ? 'open' : ''}">
-        <!-- Chat Toggle Button -->
-        <button id="ai-chat-toggle" class="ai-chat-toggle" aria-label="Toggle AI Assistant">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            <circle cx="9" cy="10" r="1" fill="currentColor"></circle>
-            <circle cx="15" cy="10" r="1" fill="currentColor"></circle>
-          </svg>
+        <!-- Chat Toggle Button with Imaquinua Logo -->
+        <button id="ai-chat-toggle" class="ai-chat-toggle neomorphic-button" aria-label="Toggle AI Assistant">
+          <img src="/logo.png" alt="Imaquinua AI" class="ai-logo" />
           <span class="ai-chat-badge" id="ai-chat-badge" style="display: none;"></span>
         </button>
 

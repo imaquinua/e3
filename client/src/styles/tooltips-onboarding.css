@@ -134,14 +134,24 @@
 
 .onboarding-tooltip {
   position: absolute;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   max-width: 400px;
   min-width: 300px;
   z-index: 10001;
   animation: slideIn 0.3s ease;
+}
+
+/* Dark theme tooltip */
+[data-theme="dark"] .onboarding-tooltip {
+  background: #1a1a1a;
+  border: 2px solid #3a3a3a;
+}
+
+/* Light theme tooltip */
+[data-theme="light"] .onboarding-tooltip {
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
 }
 
 @keyframes slideIn {
@@ -157,6 +167,28 @@
 
 .onboarding-tooltip-content {
   padding: 2rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for tooltip */
+.onboarding-tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.onboarding-tooltip-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.onboarding-tooltip-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+[data-theme="light"] .onboarding-tooltip-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .onboarding-step-indicator {
@@ -174,14 +206,28 @@
   margin: 0 0 0.75rem 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .onboarding-title {
+  color: #ffffff;
+}
+
+[data-theme="light"] .onboarding-title {
+  color: #1a1a1a;
 }
 
 .onboarding-content {
   margin: 0 0 1.5rem 0;
-  color: var(--color-text-secondary);
   line-height: 1.6;
   font-size: 1rem;
+}
+
+[data-theme="dark"] .onboarding-content {
+  color: #e0e0e0;
+}
+
+[data-theme="light"] .onboarding-content {
+  color: #4a4a4a;
 }
 
 .onboarding-actions {
