@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "start": "node server/index.js",
     "vercel-build": "vite build",
-    "demo:create": "node scripts/create-demo-user.js",
+    "demo:create": "node scripts/create-demo-users.js",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,json,md}\""
   },
