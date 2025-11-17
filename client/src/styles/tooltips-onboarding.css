@@ -193,13 +193,22 @@
 
 .onboarding-step-indicator {
   display: inline-block;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .onboarding-step-indicator {
+  background: linear-gradient(135deg, #3a3a3a, #4a4a4a);
+  color: #ffffff;
+}
+
+[data-theme="light"] .onboarding-step-indicator {
+  background: linear-gradient(135deg, #e0e0e0, #f0f0f0);
+  color: #1a1a1a;
+  border: 1px solid #d0d0d0;
 }
 
 .onboarding-title {
@@ -238,16 +247,28 @@
 
 .onboarding-actions .btn-text {
   margin-left: auto;
-  color: var(--color-text-secondary);
   text-decoration: underline;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem 1rem;
+  font-weight: 500;
 }
 
-.onboarding-actions .btn-text:hover {
-  color: var(--color-text-primary);
+[data-theme="dark"] .onboarding-actions .btn-text {
+  color: #e0e0e0;
+}
+
+[data-theme="light"] .onboarding-actions .btn-text {
+  color: #4a4a4a;
+}
+
+[data-theme="dark"] .onboarding-actions .btn-text:hover {
+  color: #ffffff;
+}
+
+[data-theme="light"] .onboarding-actions .btn-text:hover {
+  color: #1a1a1a;
 }
 
 /* Help Icon */
