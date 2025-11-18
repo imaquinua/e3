@@ -20,9 +20,12 @@ import ecosystemRoutes from './routes/ecosystems.js';
 import analyticsRoutes from './routes/analytics.js';
 import exportRoutes from './routes/export.js';
 import aiRoutes from './routes/ai.js';
+import campaignRoutes from './routes/campaigns.js';
+import publicationRoutes from './routes/publications.js';
 
 // Import database
 import { initDatabase } from './models/database.js';
+import { seedDecisionRules } from './models/seedDecisionRules.js';
 
 // Import AI services
 import { initOpenAI } from './services/openai.js';
@@ -44,7 +47,7 @@ const io = new Server(httpServer, {
   cors: corsConfig,
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || 'localhost';
 
 // Security middleware
@@ -97,6 +100,8 @@ app.use('/api/ecosystems', ecosystemRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/publications', publicationRoutes);
 
 // WebSocket handling
 io.on('connection', (socket) => {
@@ -139,6 +144,9 @@ async function startServer() {
   try {
     await initDatabase();
     console.log('✓ Database initialized');
+
+    await seedDecisionRules();
+    console.log('✓ Decision rules seeded');
 
     // Initialize AI services based on provider
     const AI_PROVIDER = process.env.AI_PROVIDER || 'openai';
