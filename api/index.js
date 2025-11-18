@@ -16,6 +16,8 @@ import ecosystemRoutes from '../server/routes/ecosystems.js';
 import analyticsRoutes from '../server/routes/analytics.js';
 import exportRoutes from '../server/routes/export.js';
 import aiRoutes from '../server/routes/ai.js';
+import campaignRoutes from '../server/routes/campaigns.js';
+import publicationRoutes from '../server/routes/publications.js';
 
 // Import database
 import { initDatabase } from '../server/models/database.js';
@@ -62,6 +64,9 @@ app.use('/api/', rateLimiter);
 initializePassport();
 app.use(passport.initialize());
 
+// Socket.IO not available in serverless - set to null to prevent errors
+app.set('io', null);
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -78,6 +83,8 @@ app.use('/api/ecosystems', ecosystemRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/publications', publicationRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
