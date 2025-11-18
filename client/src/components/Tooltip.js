@@ -50,20 +50,53 @@ export class Tooltip {
 
         // Schedule show after delay (makes it less intrusive)
         this.scheduleShow(target);
+      } else if (!e.target.closest('.tooltip-container')) {
+        // Mouse is not over any tooltip element, hide immediately
+        this.hide();
       }
     });
 
     document.addEventListener('mouseout', (e) => {
       const target = e.target.closest('[data-tooltip]');
       if (target) {
+        // Check if we're moving to the tooltip itself or another tooltip element
+        const relatedTarget = e.relatedTarget;
+        const movingToTooltip = relatedTarget && relatedTarget.closest('.tooltip-container');
+        const movingToAnotherTooltip = relatedTarget && relatedTarget.closest('[data-tooltip]');
+
         // Cancel scheduled show
         if (this.showTimeout) {
           clearTimeout(this.showTimeout);
           this.showTimeout = null;
         }
 
-        // Schedule hide after short delay
-        this.scheduleHide(300);
+        // Only schedule hide if not moving to tooltip or another tooltip element
+        if (!movingToTooltip && !movingToAnotherTooltip) {
+          this.scheduleHide(300);
+        }
+      }
+    });
+
+    // Hide tooltip when mouse leaves the tooltip container
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.closest('.tooltip-container')) {
+        // Mouse entered tooltip, cancel hide
+        if (this.hideTimeout) {
+          clearTimeout(this.hideTimeout);
+          this.hideTimeout = null;
+        }
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest('.tooltip-container')) {
+        const relatedTarget = e.relatedTarget;
+        const movingBackToElement = relatedTarget && relatedTarget.closest('[data-tooltip]');
+
+        if (!movingBackToElement) {
+          // Mouse left tooltip and not going back to element, hide
+          this.scheduleHide(100);
+        }
       }
     });
 

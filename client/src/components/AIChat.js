@@ -43,12 +43,22 @@ export class AIChat {
                 <p class="ai-chat-status">Experto en estrategia de contenido</p>
               </div>
             </div>
-            <button id="ai-chat-close" class="ai-chat-close" aria-label="Close chat">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
+            <div class="ai-chat-header-actions">
+              <button id="ai-chat-clear" class="ai-chat-action-btn" aria-label="Clear conversation" title="Borrar conversación">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+              <button id="ai-chat-close" class="ai-chat-close" aria-label="Close chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div class="ai-chat-messages" id="ai-chat-messages">
@@ -106,11 +116,13 @@ export class AIChat {
   attachEventListeners() {
     const toggle = document.getElementById('ai-chat-toggle');
     const close = document.getElementById('ai-chat-close');
+    const clear = document.getElementById('ai-chat-clear');
     const form = document.getElementById('ai-chat-form');
     const input = document.getElementById('ai-chat-input');
 
     toggle.addEventListener('click', () => this.toggle());
     close.addEventListener('click', () => this.close());
+    clear.addEventListener('click', () => this.confirmClearHistory());
     form.addEventListener('submit', (e) => this.handleSubmit(e));
 
     // Auto-resize textarea
@@ -268,10 +280,38 @@ export class AIChat {
     return div.innerHTML;
   }
 
+  confirmClearHistory() {
+    if (confirm('¿Estás seguro de que quieres borrar toda la conversación?')) {
+      this.clearHistory();
+      window.toast?.success('Conversación borrada');
+    }
+  }
+
   clearHistory() {
     this.conversationHistory = [];
     const messagesContainer = document.getElementById('ai-chat-messages');
-    messagesContainer.innerHTML = '';
+    messagesContainer.innerHTML = `
+      <div class="ai-message">
+        <div class="ai-message-avatar">AI</div>
+        <div class="ai-message-content">
+          <p>👋 ¡Hola! Soy tu asistente educativo de estrategia E³.</p>
+          <p><strong>Mi misión es ayudarte a ENTENDER tus métricas y estrategia:</strong></p>
+          <ul>
+            <li><strong>📊 Explico tus KPIs</strong>: VTR, CTR, tiempo de permanencia, tasa de rebote, ROAS y más</li>
+            <li><strong>💡 Te enseño qué medir</strong>: Por qué cada métrica importa y cómo actuar en base a ella</li>
+            <li><strong>🎯 Optimizo tu estrategia</strong>: Distribución de presupuesto y canales</li>
+            <li><strong>👥 Analizo tu audiencia</strong>: Segmentación y targeting efectivo</li>
+          </ul>
+          <p><strong>Pregúntame cosas como:</strong></p>
+          <ul>
+            <li>"¿Qué es el VTR y por qué importa?"</li>
+            <li>"¿Cómo sé si mi anuncio está bien construido?"</li>
+            <li>"¿Qué significa una tasa de rebote alta?"</li>
+            <li>"¿Cómo distribuyo mi presupuesto?"</li>
+          </ul>
+        </div>
+      </div>
+    `;
   }
 
   destroy() {

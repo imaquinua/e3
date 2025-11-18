@@ -266,13 +266,20 @@ router.post('/', [
       // Continue without AI insights - don't fail the request
     }
 
-    // Emit WebSocket event
-    const io = req.app.get('io');
-    io.to(`project:${projectId}`).emit('ecosystem-created', {
-      projectId,
-      ecosystemId,
-      hasAiInsights: !!aiInsights,
-    });
+    // Emit WebSocket event (only if io is available - won't work on serverless)
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`project:${projectId}`).emit('ecosystem-created', {
+          projectId,
+          ecosystemId,
+          hasAiInsights: !!aiInsights,
+        });
+      }
+    } catch (error) {
+      // Socket.IO not available (e.g., on serverless platforms like Vercel)
+      console.log('WebSocket not available - skipping real-time update');
+    }
 
     // Get created ecosystem
     const ecosystemResult = await db.execute({
