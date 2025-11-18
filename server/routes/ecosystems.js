@@ -266,10 +266,10 @@ router.post('/', [
       // Continue without AI insights - don't fail the request
     }
 
-    // Emit WebSocket event (only if io is available - won't work on serverless)
+    // Emit WebSocket event (only if io is available - won't work on serverless platforms)
     try {
       const io = req.app.get('io');
-      if (io) {
+      if (io && typeof io.to === 'function') {
         io.to(`project:${projectId}`).emit('ecosystem-created', {
           projectId,
           ecosystemId,
